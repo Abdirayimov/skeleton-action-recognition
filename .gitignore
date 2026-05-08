@@ -1,0 +1,76 @@
+# Build artifacts
+build/
+build-*/
+cmake-build-*/
+out/
+bin/
+lib/
+*.o
+*.a
+*.so
+*.dylib
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# IDE
+.vscode/
+.idea/
+.cache/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Models / weights / engines (binary, not for source control)
+models/
+*.onnx
+*.engine
+*.trt
+*.plan
+*.bin
+*.pth
+*.pt
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Datasets / data
+data/raw/
+data/processed/
+data/interim/
+*.npy
+*.npz
+*.pkl
+
+# Outputs
+outputs/
+runs/
+lightning_logs/
+wandb/
+tb_logs/
+
+# Logs
+logs/
+*.log
