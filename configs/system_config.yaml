@@ -1,0 +1,66 @@
+# skeleton_ar reference configuration.
+#
+# Tuned for 720p inputs and the public NTU-RGBD-60 10-class subset.
+# All values here are reasonable defaults; production use will require
+# revisiting them with held-out data from your own domain.
+
+pipeline:
+  # nvstreammux output frame size. The detector resizes internally; this
+  # only affects encode/overlay output.
+  muxer_width: 1280
+  muxer_height: 720
+
+  # Per-stream batch size for the detector. The pipeline drives a single
+  # video at a time; larger values mostly amortize trtexec overhead.
+  batch_size: 1
+
+  batched_push_timeout_us: 40000
+
+  # Render an annotated MP4 alongside the predictions.
+  emit_overlay: true
+
+detection:
+  # YOLOv8s person-detector engine. Use scripts/build_engines.sh to build.
+  engine_path: "models/engines/yolov8s_person_fp16.engine"
+  input_width: 640
+  input_height: 640
+  confidence_threshold: 0.4
+  nms_iou_threshold: 0.5
+  # COCO class index for "person".
+  person_class_id: 0
+
+pose:
+  # RTMPose-m engine, 17-keypoint COCO topology, 192x256 input.
+  engine_path: "models/engines/rtmpose_m_fp16.engine"
+  input_width: 192
+  input_height: 256
+  num_keypoints: 17
+  # Per-pose batch size for the encoder. Should match the engine's max
+  # batch profile shape.
+  batch_size: 16
+
+action:
+  # ST-GCN engine. Input is shaped (B, 3, T, V, M) where:
+  #   3 = (x, y, confidence)
+  #   T = window_frames
+  #   V = num_keypoints (17 for COCO)
+  #   M = max_persons_per_clip
+  engine_path: "models/engines/stgcn_ntu60_fp16.engine"
+  num_classes: 10
+  window_frames: 30
+  step_frames: 10  # how often to re-classify a track once the window is full
+  num_keypoints: 17
+
+tracking:
+  # Sliding window length for skeleton sequences fed to the action model.
+  buffer_size: 30
+  # If a track misses this many frames, drop its skeleton buffer.
+  max_missed_frames: 15
+  # Minimum keypoint confidence to count a joint as "observed". Joints
+  # below this are interpolated from the previous frame, or zeroed if no
+  # prior is available.
+  min_keypoint_confidence: 0.3
+
+logging:
+  level: "info"
+  json: true

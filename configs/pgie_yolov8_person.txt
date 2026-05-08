@@ -1,0 +1,30 @@
+# gst-nvinfer configuration for the YOLOv8 person detector. Used as the
+# primary GIE in the DeepStream pipeline; nvtracker (NvDCF) consumes its
+# bbox output and assigns persistent track IDs.
+
+[property]
+gpu-id=0
+net-scale-factor=0.0039215697906911373
+model-color-format=0
+infer-dims=3;640;640
+batch-size=1
+network-mode=2
+num-detected-classes=80
+gie-unique-id=1
+process-mode=1
+network-type=0
+cluster-mode=2
+maintain-aspect-ratio=1
+symmetric-padding=1
+# YOLOv8 output layout differs from YOLOv5; use the matching parser.
+parse-bbox-func-name=NvDsInferParseYoloV8
+custom-lib-path=lib/libnvds_infercustomparser_yolov8.so
+model-engine-file=models/engines/yolov8s_person_fp16.engine
+
+# Filter out everything except COCO class 0 (person).
+[class-attrs-all]
+threshold=0.4
+nms-iou-threshold=0.5
+
+[class-attrs-0]
+threshold=0.4

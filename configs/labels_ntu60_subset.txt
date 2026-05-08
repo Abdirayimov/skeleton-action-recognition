@@ -1,0 +1,13 @@
+# NTU-RGBD-60 ten-class subset used by the bundled ST-GCN engine.
+# Class indices are produced in this exact order during training and must
+# match scripts/training/prepare_ntu60.py.
+drink_water
+eat_meal
+brushing_teeth
+brushing_hair
+clapping
+reading
+writing
+phone_call
+hand_waving
+sitting_down
