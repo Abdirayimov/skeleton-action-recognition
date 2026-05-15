@@ -14,6 +14,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 option(BUILD_TOOLS "Build CLI tools (benchmark)" ON)
+option(BUILD_DEEPSTREAM "Build the DeepStream pipeline (requires DeepStream SDK + GStreamer)" ON)
 option(BUILD_TESTS "Build unit tests" OFF)
 
 # ---- Dependencies ----
@@ -22,17 +23,22 @@ find_package(OpenCV 4.5 REQUIRED COMPONENTS core imgproc imgcodecs videoio)
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp REQUIRED)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GST REQUIRED IMPORTED_TARGET
-    gstreamer-1.0
-    gstreamer-app-1.0
-    gobject-2.0
-    glib-2.0
-)
-
-find_package(DeepStream 8.0 REQUIRED)
 find_package(TensorRT REQUIRED)
+
+if(BUILD_DEEPSTREAM)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GST REQUIRED IMPORTED_TARGET
+        gstreamer-1.0
+        gstreamer-app-1.0
+        gobject-2.0
+        glib-2.0
+    )
+    find_package(DeepStream 8.0)
+    if(NOT DeepStream_FOUND)
+        message(WARNING "DeepStream SDK not found; disabling DeepStream pipeline")
+        set(BUILD_DEEPSTREAM OFF)
+    endif()
+endif()
 
 # ---- Library: skeleton_ar (static) ----
 file(GLOB_RECURSE SKEL_AR_SOURCES
@@ -44,13 +50,16 @@ file(GLOB_RECURSE SKEL_AR_SOURCES
     "${CMAKE_SOURCE_DIR}/src/overlay/*.cpp"
 )
 
+if(NOT BUILD_DEEPSTREAM)
+    list(FILTER SKEL_AR_SOURCES EXCLUDE REGEX "deepstream_pipeline\\.cpp$")
+endif()
+
 add_library(skeleton_ar STATIC ${SKEL_AR_SOURCES})
 target_include_directories(skeleton_ar
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         ${OpenCV_INCLUDE_DIRS}
         ${TensorRT_INCLUDE_DIRS}
-        ${DeepStream_INCLUDE_DIRS}
 )
 target_link_libraries(skeleton_ar
     PUBLIC
@@ -62,10 +71,16 @@ target_link_libraries(skeleton_ar
         yaml-cpp::yaml-cpp
         TensorRT::nvinfer
         TensorRT::nvonnxparser
+)
+if(BUILD_DEEPSTREAM)
+    target_include_directories(skeleton_ar PUBLIC ${DeepStream_INCLUDE_DIRS})
+    target_link_libraries(skeleton_ar PUBLIC
         DeepStream::nvds_meta
         DeepStream::nvbufsurface
         PkgConfig::GST
-)
+    )
+    target_compile_definitions(skeleton_ar PUBLIC SKEL_AR_HAVE_DEEPSTREAM=1)
+endif()
 set_target_properties(skeleton_ar PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # ---- Executable: skeleton_ar_video (offline video processing) ----
@@ -90,12 +105,12 @@ install(DIRECTORY configs/ DESTINATION share/skeleton_ar/configs)
 
 message(STATUS "")
 message(STATUS "skeleton_ar ${PROJECT_VERSION} configuration:")
-message(STATUS "  Build type:   ${CMAKE_BUILD_TYPE}")
-message(STATUS "  C++ standard: ${CMAKE_CXX_STANDARD}")
-message(STATUS "  CUDA:         ${CUDAToolkit_VERSION}")
-message(STATUS "  OpenCV:       ${OpenCV_VERSION}")
-message(STATUS "  TensorRT:     ${TensorRT_VERSION}")
-message(STATUS "  DeepStream:   ${DeepStream_VERSION}")
-message(STATUS "  Build tools:  ${BUILD_TOOLS}")
-message(STATUS "  Build tests:  ${BUILD_TESTS}")
+message(STATUS "  Build type:        ${CMAKE_BUILD_TYPE}")
+message(STATUS "  C++ standard:      ${CMAKE_CXX_STANDARD}")
+message(STATUS "  CUDA:              ${CUDAToolkit_VERSION}")
+message(STATUS "  OpenCV:            ${OpenCV_VERSION}")
+message(STATUS "  TensorRT:          ${TensorRT_VERSION}")
+message(STATUS "  DeepStream path:   ${BUILD_DEEPSTREAM}")
+message(STATUS "  Build tools:       ${BUILD_TOOLS}")
+message(STATUS "  Build tests:       ${BUILD_TESTS}")
 message(STATUS "")

@@ -3,6 +3,7 @@
 #include <opencv2/core.hpp>
 
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "skeleton_ar/trt/rtmpose_estimator.hpp"
