@@ -16,6 +16,43 @@
 
 ---
 
+## Demo
+
+<p align="center">
+  <img src="docs/assets/skeleton_demo.gif" width="320" alt="The trained ST-GCN classifying held-out NTU-RGBD skeleton clips, one per action class">
+</p>
+
+The repo's own ST-GCN, **trained from scratch on the public NTU-RGB+D
+10-class subset** (76.3% cross-subject validation accuracy in 25
+epochs), classifying ten held-out test clips — one per action class.
+The label above each stick figure is the network's prediction; the bar
+is green when it matches the ground-truth class. It calls all ten
+correctly here.
+
+Both the inference and the stick-figure rendering above are done by the
+C++ `skeleton_demo` binary running the ST-GCN **TensorRT engine** on the
+NTU-25 skeleton clips; `ffmpeg` only added the action-name text and
+encoded the GIF.
+
+```bash
+# 1. Train on the public NTU-RGB+D arrays (10-class subset, NTU-25 topology)
+cd training && python -m skeleton_ar_train.train_ntu \
+    --data-dir /path/to/ntu120 --out-dir outputs --epochs 25
+# -> outputs/stgcn_ntu10.onnx + outputs/demo_clips.bin
+
+# 2. Build the engine and render the demo (C++ inference + rasteriser)
+trtexec --onnx=outputs/stgcn_ntu10.onnx --saveEngine=stgcn_ntu10.engine
+./build/skeleton_demo --engine stgcn_ntu10.engine \
+    --clips outputs/demo_clips.bin \
+    --labels configs/labels_ntu60_subset.txt --out-dir frames
+```
+
+> Trained on an RTX 4080 (PyTorch). The ST-GCN supports both the
+> NTU-25 topology (used here) and the COCO-17 topology that RTMPose
+> produces for the live video path — selectable via the graph layout.
+
+---
+
 ## Why this exists
 
 Two-stage skeleton-based action recognition is a well-understood

@@ -63,8 +63,13 @@ class STGCNBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.relu = nn.ReLU(inplace=True)
 
+        # No residual -> the block's output is just the transformed path
+        # (a zero residual), NOT a pass-through of the input: the input
+        # has `in_channels` and the output has `out_channels`, so an
+        # identity add would be a channel mismatch. Identity is only
+        # valid when the shapes already line up.
         if not residual:
-            self.residual: nn.Module = nn.Identity()
+            self.residual: nn.Module | None = None
         elif in_channels == out_channels and stride == 1:
             self.residual = nn.Identity()
         else:
@@ -74,7 +79,7 @@ class STGCNBlock(nn.Module):
             )
 
     def forward(self, x: torch.Tensor, adjacency: torch.Tensor) -> torch.Tensor:
-        residual = self.residual(x)
+        residual = self.residual(x) if self.residual is not None else 0.0
         h = self.relu(self.bn1(self.spatial(x, adjacency)))
         h = self.temporal(h)
         h = self.dropout(h)

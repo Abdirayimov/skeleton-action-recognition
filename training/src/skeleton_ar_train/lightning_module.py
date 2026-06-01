@@ -18,6 +18,7 @@ class STGCNLightning(L.LightningModule):
         in_channels: int = 3,
         num_classes: int = 10,
         num_keypoints: int = 17,
+        layout: str = "coco",
         hidden_channels: tuple[int, ...] = (64, 64, 128, 128, 256, 256),
         lr: float = 0.05,
         momentum: float = 0.9,
@@ -28,7 +29,7 @@ class STGCNLightning(L.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        adjacency = torch.from_numpy(partition_adjacency(num_keypoints)).float()
+        adjacency = torch.from_numpy(partition_adjacency(layout)).float()
         self.model = STGCN(
             in_channels=in_channels,
             num_classes=num_classes,

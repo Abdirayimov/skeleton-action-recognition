@@ -90,6 +90,11 @@ target_link_libraries(skeleton_ar_video PRIVATE skeleton_ar)
 if(BUILD_TOOLS)
     add_executable(skeleton_ar_benchmark tools/benchmark.cpp)
     target_link_libraries(skeleton_ar_benchmark PRIVATE skeleton_ar)
+
+    # Visualises the trained ST-GCN on exported NTU clips (engine + OpenCV
+    # only; no DeepStream needed).
+    add_executable(skeleton_demo tools/skeleton_demo.cpp)
+    target_link_libraries(skeleton_demo PRIVATE skeleton_ar)
 endif()
 
 if(BUILD_TESTS)
