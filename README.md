@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Abdirayimov/skeleton-action-recognition/actions/workflows/ci.yml"><img src="https://github.com/Abdirayimov/skeleton-action-recognition/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <img src="https://img.shields.io/badge/C%2B%2B-17-blue.svg" alt="C++17">
   <img src="https://img.shields.io/badge/CUDA-12.x-76B900.svg" alt="CUDA">
   <img src="https://img.shields.io/badge/TensorRT-8.6%2B-76B900.svg" alt="TensorRT">
@@ -230,6 +231,12 @@ runtime. The interesting knobs:
 - [ ] CTR-GCN and AAGCN classifier variants.
 - [ ] Multi-person interaction handling (M = 2, paired classifier).
 - [ ] INT8 calibration recipe for the action model.
+
+## CI
+
+CI runs clang-format and cppcheck over the tree. **The CUDA / TensorRT /
+DeepStream build is not exercised on GitHub runners** — they carry none
+of those SDKs. Build it locally or through the provided Docker image.
 
 ## License
 
