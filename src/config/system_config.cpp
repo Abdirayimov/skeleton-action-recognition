@@ -26,10 +26,12 @@ T optional(const YAML::Node& node, const std::string& key, T fallback) {
 std::vector<std::string> read_labels(const std::string& path) {
     std::vector<std::string> labels;
     std::ifstream f(path);
-    if (!f.is_open()) return labels;
+    if (!f.is_open())
+        return labels;
     std::string line;
     while (std::getline(f, line)) {
-        if (line.empty() || line[0] == '#') continue;
+        if (line.empty() || line[0] == '#')
+            continue;
         labels.push_back(line);
     }
     return labels;
@@ -84,8 +86,7 @@ SystemConfig SystemConfig::load(const std::string& yaml_path, const std::string&
     if (const auto t = root["tracking"]; t) {
         out.tracking.buffer_size = optional<std::uint32_t>(t, "buffer_size", 30);
         out.tracking.max_missed_frames = optional<std::uint32_t>(t, "max_missed_frames", 15);
-        out.tracking.min_keypoint_confidence =
-            optional<float>(t, "min_keypoint_confidence", 0.3f);
+        out.tracking.min_keypoint_confidence = optional<float>(t, "min_keypoint_confidence", 0.3f);
     }
 
     if (const auto l = root["logging"]; l) {

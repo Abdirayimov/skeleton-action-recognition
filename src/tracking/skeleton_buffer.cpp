@@ -40,7 +40,9 @@ void SkeletonBuffer::push(const trt::KeypointSet& kps) {
     maybe_pop_oldest_();
 }
 
-void SkeletonBuffer::mark_missed() { ++missed_; }
+void SkeletonBuffer::mark_missed() {
+    ++missed_;
+}
 
 void SkeletonBuffer::maybe_pop_oldest_() {
     while (frames_.size() > window_frames_) {
@@ -49,7 +51,8 @@ void SkeletonBuffer::maybe_pop_oldest_() {
 }
 
 std::optional<std::vector<float>> SkeletonBuffer::as_tensor() const {
-    if (!ready()) return std::nullopt;
+    if (!ready())
+        return std::nullopt;
 
     const auto T = window_frames_;
     const auto V = num_keypoints_;
@@ -77,7 +80,8 @@ std::optional<std::vector<float>> SkeletonBuffer::as_tensor() const {
     std::size_t count = 0;
     for (std::uint32_t t = 0; t < T; ++t) {
         for (auto v : kCentroidJoints) {
-            if (v >= V) continue;
+            if (v >= V)
+                continue;
             mean_x += tensor[(0 * T + t) * V + v];
             mean_y += tensor[(1 * T + t) * V + v];
             ++count;
@@ -101,7 +105,8 @@ std::optional<std::vector<float>> SkeletonBuffer::as_tensor() const {
             const float x = tensor[(0 * T + t) * V + v];
             const float y = tensor[(1 * T + t) * V + v];
             const float n = std::sqrt(x * x + y * y);
-            if (n > max_norm) max_norm = n;
+            if (n > max_norm)
+                max_norm = n;
         }
     }
     if (max_norm > 1e-6f) {

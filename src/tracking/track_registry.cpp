@@ -36,11 +36,10 @@ void TrackRegistry::age_unobserved() {
 }
 
 void TrackRegistry::mark_all_unobserved() {
-    for (auto& [k, _] : observed_this_frame_) observed_this_frame_[k] = false;
+    for (auto& [k, seen] : observed_this_frame_)
+        seen = false;
     for (const auto& [k, _] : tracks_) {
-        if (observed_this_frame_.find(k) == observed_this_frame_.end()) {
-            observed_this_frame_[k] = false;
-        }
+        observed_this_frame_.try_emplace(k, false);
     }
 }
 
@@ -48,7 +47,8 @@ std::vector<TrackedPerson*> TrackRegistry::ready_tracks() {
     std::vector<TrackedPerson*> out;
     out.reserve(tracks_.size());
     for (auto& [_, t] : tracks_) {
-        if (t.buffer.ready()) out.push_back(&t);
+        if (t.buffer.ready())
+            out.push_back(&t);
     }
     return out;
 }
@@ -56,7 +56,8 @@ std::vector<TrackedPerson*> TrackRegistry::ready_tracks() {
 std::vector<TrackedPerson*> TrackRegistry::all_tracks() {
     std::vector<TrackedPerson*> out;
     out.reserve(tracks_.size());
-    for (auto& [_, t] : tracks_) out.push_back(&t);
+    for (auto& [_, t] : tracks_)
+        out.push_back(&t);
     return out;
 }
 

@@ -65,8 +65,7 @@ struct SystemConfig {
 
     /// Load configuration from a YAML file. Throws std::runtime_error on
     /// parse failure or missing required fields.
-    static SystemConfig load(const std::string& yaml_path,
-                             const std::string& labels_path = "");
+    static SystemConfig load(const std::string& yaml_path, const std::string& labels_path = "");
 };
 
 }  // namespace skeleton_ar::config

@@ -1,20 +1,17 @@
 #include "skeleton_ar/pipeline/probe_chain.hpp"
 
 #include <Eigen/Core>
-
 #include <utility>
 
 namespace skeleton_ar::pipeline {
 
-ProbeChain::ProbeChain(trt::RTMPoseEstimator& pose,
-                       trt::STGCNClassifier& action,
-                       tracking::TrackRegistry& registry,
-                       const config::ActionConfig& action_cfg)
+ProbeChain::ProbeChain(trt::RTMPoseEstimator& pose, trt::STGCNClassifier& action,
+                       tracking::TrackRegistry& registry, const config::ActionConfig& action_cfg)
     : pose_(pose), action_(action), registry_(registry), action_cfg_(action_cfg) {}
 
-FrameResult ProbeChain::process(
-    std::uint64_t frame_number, std::int64_t pts_ns, const cv::Mat& image,
-    const std::vector<std::pair<std::uint64_t, cv::Rect2f>>& tracks) {
+FrameResult ProbeChain::process(std::uint64_t frame_number, std::int64_t pts_ns,
+                                const cv::Mat& image,
+                                const std::vector<std::pair<std::uint64_t, cv::Rect2f>>& tracks) {
     FrameResult result;
     result.frame_number = frame_number;
     result.pts_ns = pts_ns;
@@ -44,7 +41,8 @@ FrameResult ProbeChain::process(
     //    counter has rolled over.
     std::vector<tracking::TrackedPerson*> due;
     for (auto* tp : registry_.ready_tracks()) {
-        if (tp->since_last_classified >= action_cfg_.step_frames) due.push_back(tp);
+        if (tp->since_last_classified >= action_cfg_.step_frames)
+            due.push_back(tp);
     }
 
     if (!due.empty()) {
@@ -55,9 +53,11 @@ FrameResult ProbeChain::process(
         std::vector<std::size_t> emitted;
         for (std::size_t i = 0; i < due.size(); ++i) {
             const auto tensor = due[i]->buffer.as_tensor();
-            if (!tensor) continue;
+            if (!tensor)
+                continue;
             for (Eigen::Index j = 0; j < row_size; ++j) {
-                batch(static_cast<Eigen::Index>(emitted.size()), j) = (*tensor)[static_cast<std::size_t>(j)];
+                batch(static_cast<Eigen::Index>(emitted.size()), j) =
+                    (*tensor)[static_cast<std::size_t>(j)];
             }
             emitted.push_back(i);
         }
@@ -92,7 +92,8 @@ FrameResult ProbeChain::process(
         result.tracks[i].keypoints = kps_per_track[i];
     }
 
-    if (callback_) callback_(result);
+    if (callback_)
+        callback_(result);
     return result;
 }
 

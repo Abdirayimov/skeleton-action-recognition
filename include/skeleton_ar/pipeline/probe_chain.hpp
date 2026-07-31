@@ -18,15 +18,12 @@ using ResultCallback = std::function<void(const FrameResult&)>;
 /// probe that fires once per frame after nvtracker.
 class ProbeChain {
 public:
-    ProbeChain(trt::RTMPoseEstimator& pose,
-               trt::STGCNClassifier& action,
-               tracking::TrackRegistry& registry,
-               const config::ActionConfig& action_cfg);
+    ProbeChain(trt::RTMPoseEstimator& pose, trt::STGCNClassifier& action,
+               tracking::TrackRegistry& registry, const config::ActionConfig& action_cfg);
 
     /// Process a single frame given the raw image plus the tracker's
     /// (track_id, bbox) pairs from this frame.
-    FrameResult process(std::uint64_t frame_number, std::int64_t pts_ns,
-                        const cv::Mat& image,
+    FrameResult process(std::uint64_t frame_number, std::int64_t pts_ns, const cv::Mat& image,
                         const std::vector<std::pair<std::uint64_t, cv::Rect2f>>& tracks);
 
     void set_result_callback(ResultCallback cb) { callback_ = std::move(cb); }

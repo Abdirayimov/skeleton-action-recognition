@@ -1,7 +1,6 @@
 #include "skeleton_ar/pipeline/deepstream_pipeline.hpp"
 
 #include <gst/gst.h>
-
 #include <spdlog/spdlog.h>
 
 #include <atomic>
@@ -41,7 +40,8 @@ DeepStreamPipeline::DeepStreamPipeline(const config::PipelineConfig& cfg,
                                        const std::string& tracker_config_path,
                                        ProbeChain& probe_chain)
     : impl_(std::make_unique<Impl>()), cfg_(cfg), probe_chain_(probe_chain) {
-    if (!gst_is_initialized()) gst_init(nullptr, nullptr);
+    if (!gst_is_initialized())
+        gst_init(nullptr, nullptr);
 
     impl_->pipeline = gst_pipeline_new("skeleton-ar");
     impl_->source = make("nvurisrcbin", "video-source");
@@ -51,25 +51,16 @@ DeepStreamPipeline::DeepStreamPipeline(const config::PipelineConfig& cfg,
     impl_->osd = make("nvdsosd", "overlay");
     impl_->sink = make("fakesink", "sink");
 
-    g_object_set(G_OBJECT(impl_->streammux),
-                 "batch-size", cfg_.batch_size,
-                 "width", cfg_.muxer_width,
-                 "height", cfg_.muxer_height,
-                 "batched-push-timeout", cfg_.batched_push_timeout_us,
-                 "live-source", FALSE,
-                 nullptr);
+    g_object_set(G_OBJECT(impl_->streammux), "batch-size", cfg_.batch_size, "width",
+                 cfg_.muxer_width, "height", cfg_.muxer_height, "batched-push-timeout",
+                 cfg_.batched_push_timeout_us, "live-source", FALSE, nullptr);
 
-    g_object_set(G_OBJECT(impl_->pgie),
-                 "config-file-path", pgie_config_path.c_str(),
-                 "batch-size", cfg_.batch_size,
-                 nullptr);
+    g_object_set(G_OBJECT(impl_->pgie), "config-file-path", pgie_config_path.c_str(), "batch-size",
+                 cfg_.batch_size, nullptr);
 
-    g_object_set(G_OBJECT(impl_->tracker),
-                 "tracker-width", 640,
-                 "tracker-height", 384,
-                 "ll-config-file", tracker_config_path.c_str(),
-                 "ll-lib-file", "/opt/nvidia/deepstream/deepstream/lib/libnvds_nvmultiobjecttracker.so",
-                 nullptr);
+    g_object_set(G_OBJECT(impl_->tracker), "tracker-width", 640, "tracker-height", 384,
+                 "ll-config-file", tracker_config_path.c_str(), "ll-lib-file",
+                 "/opt/nvidia/deepstream/deepstream/lib/libnvds_nvmultiobjecttracker.so", nullptr);
 
     g_object_set(G_OBJECT(impl_->osd), "process-mode", 1, nullptr);
     g_object_set(G_OBJECT(impl_->sink), "sync", FALSE, "async", FALSE, "qos", FALSE, nullptr);
@@ -79,8 +70,7 @@ DeepStreamPipeline::DeepStreamPipeline(const config::PipelineConfig& cfg,
 
     GstPad* src_pad = gst_element_get_static_pad(impl_->source, "src");
     GstPad* mux_pad = gst_element_request_pad_simple(impl_->streammux, "sink_0");
-    if (!src_pad || !mux_pad ||
-        gst_pad_link(src_pad, mux_pad) != GST_PAD_LINK_OK) {
+    if (!src_pad || !mux_pad || gst_pad_link(src_pad, mux_pad) != GST_PAD_LINK_OK) {
         throw std::runtime_error("failed to link nvurisrcbin -> nvstreammux");
     }
     gst_object_unref(src_pad);
@@ -106,7 +96,8 @@ DeepStreamPipeline::~DeepStreamPipeline() {
 }
 
 void DeepStreamPipeline::run(const std::string& input_uri, const std::string& output_path) {
-    if (running_.exchange(true)) return;
+    if (running_.exchange(true))
+        return;
     g_object_set(G_OBJECT(impl_->source), "uri", input_uri.c_str(), nullptr);
 
     // Re-targeting the sink to a file is supported by replacing fakesink
@@ -126,7 +117,8 @@ void DeepStreamPipeline::run(const std::string& input_uri, const std::string& ou
 }
 
 void DeepStreamPipeline::stop() {
-    if (!running_.exchange(false)) return;
+    if (!running_.exchange(false))
+        return;
     if (impl_->loop) {
         g_main_loop_quit(impl_->loop);
         g_main_loop_unref(impl_->loop);

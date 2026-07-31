@@ -1,8 +1,7 @@
 #pragma once
 
-#include <opencv2/core.hpp>
-
 #include <memory>
+#include <opencv2/core.hpp>
 #include <vector>
 
 #include "skeleton_ar/config/system_config.hpp"

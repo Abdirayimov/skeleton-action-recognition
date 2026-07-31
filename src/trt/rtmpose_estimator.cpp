@@ -1,9 +1,8 @@
 #include "skeleton_ar/trt/rtmpose_estimator.hpp"
 
-#include <opencv2/imgproc.hpp>
-
 #include <algorithm>
 #include <cmath>
+#include <opencv2/imgproc.hpp>
 #include <stdexcept>
 
 #include "skeleton_ar/trt/trt_engine.hpp"
@@ -13,8 +12,8 @@ namespace skeleton_ar::trt {
 
 namespace {
 
-constexpr float kImageMean[3] = {123.675f, 116.28f, 103.53f};   // RGB ImageNet mean
-constexpr float kImageStd[3] = {58.395f, 57.12f, 57.375f};      // RGB ImageNet std
+constexpr float kImageMean[3] = {123.675f, 116.28f, 103.53f};  // RGB ImageNet mean
+constexpr float kImageStd[3] = {58.395f, 57.12f, 57.375f};     // RGB ImageNet std
 
 void preprocess(const cv::Mat& crop, int out_w, int out_h, float* dst) {
     cv::Mat resized;
@@ -42,7 +41,8 @@ cv::Rect clamp_to(const cv::Rect2f& r, int W, int H) {
     const int y = std::max(0, static_cast<int>(std::floor(r.y)));
     const int x2 = std::min(W, static_cast<int>(std::ceil(r.x + r.width)));
     const int y2 = std::min(H, static_cast<int>(std::ceil(r.y + r.height)));
-    if (x2 <= x || y2 <= y) return cv::Rect();
+    if (x2 <= x || y2 <= y)
+        return cv::Rect();
     return cv::Rect(x, y, x2 - x, y2 - y);
 }
 
@@ -60,7 +60,8 @@ RTMPoseEstimator::~RTMPoseEstimator() = default;
 std::vector<KeypointSet> RTMPoseEstimator::estimate(const cv::Mat& image,
                                                     const std::vector<cv::Rect2f>& bboxes) {
     std::vector<KeypointSet> out(bboxes.size());
-    if (bboxes.empty()) return out;
+    if (bboxes.empty())
+        return out;
 
     const std::size_t bsz = cfg_.batch_size;
     for (std::size_t i = 0; i < bboxes.size(); i += bsz) {
@@ -70,8 +71,7 @@ std::vector<KeypointSet> RTMPoseEstimator::estimate(const cv::Mat& image,
     return out;
 }
 
-void RTMPoseEstimator::run_chunk_(const cv::Mat& image,
-                                  const std::vector<cv::Rect2f>& bboxes,
+void RTMPoseEstimator::run_chunk_(const cv::Mat& image, const std::vector<cv::Rect2f>& bboxes,
                                   std::size_t offset, std::size_t count,
                                   std::vector<KeypointSet>& out) {
     const int W = image.cols;
@@ -86,22 +86,23 @@ void RTMPoseEstimator::run_chunk_(const cv::Mat& image,
     std::size_t actual = 0;
     for (std::size_t k = 0; k < count; ++k) {
         const auto roi = clamp_to(bboxes[offset + k], W, H);
-        if (roi.area() <= 0) continue;
+        if (roi.area() <= 0)
+            continue;
         valid_rois[actual] = roi;
         cv::Mat crop = image(roi);
         preprocess(crop, static_cast<int>(in_w), static_cast<int>(in_h),
                    input_scratch_.data() + actual * per_img);
         ++actual;
     }
-    if (actual == 0) return;
+    if (actual == 0)
+        return;
 
     const std::string input_name = engine_->bindings().front().name;
-    engine_->set_input_shape(input_name,
-                             {static_cast<std::int64_t>(actual), 3, in_h, in_w});
+    engine_->set_input_shape(input_name, {static_cast<std::int64_t>(actual), 3, in_h, in_w});
 
     utils::CudaStream stream;
-    engine_->copy_input(input_name, input_scratch_.data(),
-                        actual * per_img * sizeof(float), stream.get());
+    engine_->copy_input(input_name, input_scratch_.data(), actual * per_img * sizeof(float),
+                        stream.get());
     engine_->infer(stream.get());
 
     // RTMPose simcc head produces two outputs (x, y) of shape

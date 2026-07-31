@@ -10,8 +10,8 @@ namespace skeleton_ar::utils {
 
 inline void cuda_check(cudaError_t err, const char* file, int line) {
     if (err != cudaSuccess) {
-        throw std::runtime_error(std::string("CUDA error at ") + file + ":" +
-                                 std::to_string(line) + " - " + cudaGetErrorString(err));
+        throw std::runtime_error(std::string("CUDA error at ") + file + ":" + std::to_string(line) +
+                                 " - " + cudaGetErrorString(err));
     }
 }
 
@@ -19,18 +19,18 @@ class CudaStream {
 public:
     CudaStream() { cuda_check(cudaStreamCreate(&stream_), __FILE__, __LINE__); }
     ~CudaStream() {
-        if (stream_ != nullptr) cudaStreamDestroy(stream_);
+        if (stream_ != nullptr)
+            cudaStreamDestroy(stream_);
     }
 
     CudaStream(const CudaStream&) = delete;
     CudaStream& operator=(const CudaStream&) = delete;
 
-    CudaStream(CudaStream&& other) noexcept : stream_(other.stream_) {
-        other.stream_ = nullptr;
-    }
+    CudaStream(CudaStream&& other) noexcept : stream_(other.stream_) { other.stream_ = nullptr; }
     CudaStream& operator=(CudaStream&& other) noexcept {
         if (this != &other) {
-            if (stream_ != nullptr) cudaStreamDestroy(stream_);
+            if (stream_ != nullptr)
+                cudaStreamDestroy(stream_);
             stream_ = other.stream_;
             other.stream_ = nullptr;
         }

@@ -13,7 +13,8 @@ namespace skeleton_ar::trt {
 namespace {
 
 void softmax_inplace(float* x, std::size_t n) {
-    if (n == 0) return;
+    if (n == 0)
+        return;
     const float m = *std::max_element(x, x + n);
     float sum = 0.0f;
     for (std::size_t i = 0; i < n; ++i) {
@@ -21,7 +22,8 @@ void softmax_inplace(float* x, std::size_t n) {
         sum += x[i];
     }
     if (sum > 0.0f) {
-        for (std::size_t i = 0; i < n; ++i) x[i] /= sum;
+        for (std::size_t i = 0; i < n; ++i)
+            x[i] /= sum;
     }
 }
 
@@ -47,8 +49,7 @@ ActionPrediction STGCNClassifier::classify(const std::vector<float>& skeleton) {
     engine_->set_input_shape(input_name, {1, 3, T, V, 1});
 
     utils::CudaStream stream;
-    engine_->copy_input(input_name, skeleton.data(), skeleton.size() * sizeof(float),
-                        stream.get());
+    engine_->copy_input(input_name, skeleton.data(), skeleton.size() * sizeof(float), stream.get());
     engine_->infer(stream.get());
 
     std::string out_name;
@@ -58,8 +59,8 @@ ActionPrediction STGCNClassifier::classify(const std::vector<float>& skeleton) {
             break;
         }
     }
-    engine_->copy_output(out_name, output_scratch_.data(),
-                         output_scratch_.size() * sizeof(float), stream.get());
+    engine_->copy_output(out_name, output_scratch_.data(), output_scratch_.size() * sizeof(float),
+                         stream.get());
     stream.synchronize();
 
     softmax_inplace(output_scratch_.data(), output_scratch_.size());

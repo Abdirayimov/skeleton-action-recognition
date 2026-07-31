@@ -1,8 +1,7 @@
 #include "skeleton_ar/overlay/visualizer.hpp"
 
-#include <opencv2/imgproc.hpp>
-
 #include <array>
+#include <opencv2/imgproc.hpp>
 #include <string>
 #include <utility>
 #include <vector>
@@ -21,11 +20,8 @@ namespace {
 //  13: left_knee    14: right_knee
 //  15: left_ankle   16: right_ankle
 constexpr std::array<std::pair<int, int>, 19> kEdges{{
-    {0, 1}, {0, 2}, {1, 3}, {2, 4},
-    {5, 6}, {5, 7}, {7, 9}, {6, 8}, {8, 10},
-    {5, 11}, {6, 12}, {11, 12},
-    {11, 13}, {13, 15}, {12, 14}, {14, 16},
-    {0, 5}, {0, 6}, {3, 4},
+    {0, 1},  {0, 2},   {1, 3},   {2, 4},   {5, 6},   {5, 7},   {7, 9}, {6, 8}, {8, 10}, {5, 11},
+    {6, 12}, {11, 12}, {11, 13}, {13, 15}, {12, 14}, {14, 16}, {0, 5}, {0, 6}, {3, 4},
 }};
 
 cv::Scalar color_for_track(std::uint64_t id) {
@@ -54,7 +50,8 @@ void Visualizer::render(cv::Mat& frame, const pipeline::FrameResult& result) con
         // Skeleton edges
         if (t.keypoints.size() >= 17) {
             for (const auto& [a, b] : kEdges) {
-                if (t.keypoints[a].score < 0.2f || t.keypoints[b].score < 0.2f) continue;
+                if (t.keypoints[a].score < 0.2f || t.keypoints[b].score < 0.2f)
+                    continue;
                 cv::line(frame,
                          cv::Point(static_cast<int>(t.keypoints[a].x),
                                    static_cast<int>(t.keypoints[a].y)),
@@ -63,10 +60,10 @@ void Visualizer::render(cv::Mat& frame, const pipeline::FrameResult& result) con
                          color, 2);
             }
             for (const auto& kp : t.keypoints) {
-                if (kp.score < 0.2f) continue;
-                cv::circle(frame,
-                           cv::Point(static_cast<int>(kp.x), static_cast<int>(kp.y)),
-                           3, color, -1);
+                if (kp.score < 0.2f)
+                    continue;
+                cv::circle(frame, cv::Point(static_cast<int>(kp.x), static_cast<int>(kp.y)), 3,
+                           color, -1);
             }
         }
 

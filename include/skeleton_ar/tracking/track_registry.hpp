@@ -18,8 +18,8 @@ struct TrackedPerson {
     std::uint32_t since_last_classified = 0;
     std::optional<trt::ActionPrediction> latest_action;
 
-    TrackedPerson(std::uint64_t id, const config::TrackingConfig& cfg,
-                  std::uint32_t num_keypoints, std::uint32_t window_frames)
+    TrackedPerson(std::uint64_t id, const config::TrackingConfig& cfg, std::uint32_t num_keypoints,
+                  std::uint32_t window_frames)
         : track_id(id), buffer(cfg, num_keypoints, window_frames) {}
 };
 

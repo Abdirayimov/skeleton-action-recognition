@@ -21,10 +21,8 @@ class ProbeChain;
 /// frame is encoded.
 class DeepStreamPipeline {
 public:
-    DeepStreamPipeline(const config::PipelineConfig& cfg,
-                       const std::string& pgie_config_path,
-                       const std::string& tracker_config_path,
-                       ProbeChain& probe_chain);
+    DeepStreamPipeline(const config::PipelineConfig& cfg, const std::string& pgie_config_path,
+                       const std::string& tracker_config_path, ProbeChain& probe_chain);
     ~DeepStreamPipeline();
 
     DeepStreamPipeline(const DeepStreamPipeline&) = delete;

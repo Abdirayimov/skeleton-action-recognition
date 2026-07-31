@@ -2,7 +2,6 @@
 
 #include <NvInfer.h>
 #include <cuda_runtime.h>
-
 #include <spdlog/spdlog.h>
 
 #include <fstream>
@@ -44,21 +43,30 @@ TrtLogger& global_trt_logger() {
 
 std::size_t element_size_for(nvinfer1::DataType dt) {
     switch (dt) {
-        case nvinfer1::DataType::kFLOAT: return 4;
-        case nvinfer1::DataType::kHALF:  return 2;
-        case nvinfer1::DataType::kINT8:  return 1;
-        case nvinfer1::DataType::kINT32: return 4;
-        case nvinfer1::DataType::kBOOL:  return 1;
-        case nvinfer1::DataType::kUINT8: return 1;
-        case nvinfer1::DataType::kFP8:   return 1;
-        default: return 0;
+        case nvinfer1::DataType::kFLOAT:
+            return 4;
+        case nvinfer1::DataType::kHALF:
+            return 2;
+        case nvinfer1::DataType::kINT8:
+            return 1;
+        case nvinfer1::DataType::kINT32:
+            return 4;
+        case nvinfer1::DataType::kBOOL:
+            return 1;
+        case nvinfer1::DataType::kUINT8:
+            return 1;
+        case nvinfer1::DataType::kFP8:
+            return 1;
+        default:
+            return 0;
     }
 }
 
 std::size_t volume_of(const std::vector<std::int64_t>& shape) {
     std::size_t v = 1;
     for (auto d : shape) {
-        if (d <= 0) return 0;
+        if (d <= 0)
+            return 0;
         v *= static_cast<std::size_t>(d);
     }
     return v;
@@ -128,7 +136,8 @@ TrtEngine::TrtEngine(const std::string& engine_path) : impl_(std::make_unique<Im
 TrtEngine::~TrtEngine() {
     if (impl_) {
         for (auto& [_, ptr] : impl_->device_buffers) {
-            if (ptr != nullptr) cudaFree(ptr);
+            if (ptr != nullptr)
+                cudaFree(ptr);
         }
     }
 }
@@ -136,8 +145,7 @@ TrtEngine::~TrtEngine() {
 TrtEngine::TrtEngine(TrtEngine&&) noexcept = default;
 TrtEngine& TrtEngine::operator=(TrtEngine&&) noexcept = default;
 
-void TrtEngine::set_input_shape(const std::string& name,
-                                const std::vector<std::int64_t>& shape) {
+void TrtEngine::set_input_shape(const std::string& name, const std::vector<std::int64_t>& shape) {
     nvinfer1::Dims dims;
     dims.nbDims = static_cast<std::int32_t>(shape.size());
     for (std::size_t i = 0; i < shape.size(); ++i) {
@@ -164,18 +172,23 @@ void TrtEngine::set_input_shape(const std::string& name,
     // bind its device buffer, otherwise a dynamic-batch engine has no
     // address set for its outputs and enqueueV3 fails.
     for (auto& out : bindings_) {
-        if (out.is_input) continue;
+        if (out.is_input)
+            continue;
         const auto odims = impl_->context->getTensorShape(out.name.c_str());
-        if (odims.nbDims < 0) continue;
+        if (odims.nbDims < 0)
+            continue;
         std::vector<std::int64_t> resolved;
         bool concrete = true;
         for (std::int32_t k = 0; k < odims.nbDims; ++k) {
             resolved.push_back(odims.d[k]);
-            if (odims.d[k] < 0) concrete = false;
+            if (odims.d[k] < 0)
+                concrete = false;
         }
-        if (!concrete) continue;
+        if (!concrete)
+            continue;
         const std::size_t new_vol = volume_of(resolved);
-        if (new_vol == out.volume && impl_->device_buffers[out.name] != nullptr) continue;
+        if (new_vol == out.volume && impl_->device_buffers[out.name] != nullptr)
+            continue;
         out.shape = resolved;
         out.volume = new_vol;
         void*& optr = impl_->device_buffers[out.name];
@@ -216,7 +229,8 @@ const void* TrtEngine::device_ptr(const std::string& name) const {
 
 const BindingInfo& TrtEngine::binding(const std::string& name) const {
     for (const auto& b : bindings_) {
-        if (b.name == name) return b;
+        if (b.name == name)
+            return b;
     }
     throw std::out_of_range("no such binding: " + name);
 }

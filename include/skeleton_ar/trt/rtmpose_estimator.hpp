@@ -1,8 +1,7 @@
 #pragma once
 
-#include <opencv2/core.hpp>
-
 #include <memory>
+#include <opencv2/core.hpp>
 #include <vector>
 
 #include "skeleton_ar/config/system_config.hpp"
@@ -39,8 +38,7 @@ public:
 
     /// Estimate a pose for each bbox. The returned vector has the same
     /// size as `bboxes`; an entry may be empty if cropping fails.
-    std::vector<KeypointSet> estimate(const cv::Mat& image,
-                                      const std::vector<cv::Rect2f>& bboxes);
+    std::vector<KeypointSet> estimate(const cv::Mat& image, const std::vector<cv::Rect2f>& bboxes);
 
     const config::PoseConfig& config() const noexcept { return cfg_; }
 
@@ -53,8 +51,8 @@ private:
     /// Per-pose preprocessing scratch (cropped + resized BGR).
     cv::Mat crop_scratch_;
 
-    void run_chunk_(const cv::Mat& image, const std::vector<cv::Rect2f>& bboxes,
-                    std::size_t offset, std::size_t count, std::vector<KeypointSet>& out);
+    void run_chunk_(const cv::Mat& image, const std::vector<cv::Rect2f>& bboxes, std::size_t offset,
+                    std::size_t count, std::vector<KeypointSet>& out);
 };
 
 }  // namespace skeleton_ar::trt

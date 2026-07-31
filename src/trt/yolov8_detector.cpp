@@ -1,9 +1,8 @@
 #include "skeleton_ar/trt/yolov8_detector.hpp"
 
-#include <opencv2/imgproc.hpp>
-
 #include <algorithm>
 #include <cmath>
+#include <opencv2/imgproc.hpp>
 
 #include "skeleton_ar/trt/trt_engine.hpp"
 #include "skeleton_ar/utils/cuda_helpers.hpp"
@@ -70,11 +69,14 @@ std::vector<PersonDetection> nms(std::vector<PersonDetection> dets, float thresh
     std::vector<PersonDetection> kept;
     std::vector<bool> sup(dets.size(), false);
     for (std::size_t i = 0; i < dets.size(); ++i) {
-        if (sup[i]) continue;
+        if (sup[i])
+            continue;
         kept.push_back(dets[i]);
         for (std::size_t j = i + 1; j < dets.size(); ++j) {
-            if (sup[j]) continue;
-            if (iou(dets[i].bbox, dets[j].bbox) > thresh) sup[j] = true;
+            if (sup[j])
+                continue;
+            if (iou(dets[i].bbox, dets[j].bbox) > thresh)
+                sup[j] = true;
         }
     }
     return kept;
@@ -90,14 +92,14 @@ YOLOv8Detector::YOLOv8Detector(const config::DetectionConfig& cfg)
 YOLOv8Detector::~YOLOv8Detector() = default;
 
 std::vector<PersonDetection> YOLOv8Detector::detect(const cv::Mat& image) {
-    const auto lb = letterbox(image, static_cast<int>(cfg_.input_width),
-                              static_cast<int>(cfg_.input_height));
+    const auto lb =
+        letterbox(image, static_cast<int>(cfg_.input_width), static_cast<int>(cfg_.input_height));
     hwc_bgr_to_chw_rgb_norm(lb.image, input_scratch_.data());
 
     const std::string input_name = engine_->bindings().front().name;
     utils::CudaStream stream;
-    engine_->copy_input(input_name, input_scratch_.data(),
-                        input_scratch_.size() * sizeof(float), stream.get());
+    engine_->copy_input(input_name, input_scratch_.data(), input_scratch_.size() * sizeof(float),
+                        stream.get());
     engine_->infer(stream.get());
 
     // YOLOv8 has a single output of shape (1, 84, 8400) where 84 = 4 (bbox)
@@ -120,7 +122,8 @@ std::vector<PersonDetection> YOLOv8Detector::detect(const cv::Mat& image) {
     std::vector<PersonDetection> raw;
     for (int i = 0; i < n_anchors; ++i) {
         const float score = out[(4 + cfg_.person_class_id) * n_anchors + i];
-        if (score < cfg_.confidence_threshold) continue;
+        if (score < cfg_.confidence_threshold)
+            continue;
 
         const float cx = out[0 * n_anchors + i];
         const float cy = out[1 * n_anchors + i];

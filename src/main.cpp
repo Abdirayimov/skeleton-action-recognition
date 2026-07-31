@@ -1,13 +1,12 @@
 #include <spdlog/spdlog.h>
 
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/videoio.hpp>
-
 #include <atomic>
 #include <chrono>
 #include <csignal>
 #include <cstdlib>
 #include <iostream>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/videoio.hpp>
 #include <string>
 
 #include "skeleton_ar/config/system_config.hpp"
@@ -22,7 +21,9 @@
 namespace {
 
 std::atomic<bool> g_shutdown{false};
-void signal_handler(int) { g_shutdown = true; }
+void signal_handler(int) {
+    g_shutdown = true;
+}
 
 void print_usage(const char* argv0) {
     std::cerr << "Usage: " << argv0
@@ -50,10 +51,14 @@ int main(int argc, char** argv) {
 
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[i];
-        if ((a == "--config" || a == "-c") && i + 1 < argc) config_path = argv[++i];
-        else if (a == "--labels" && i + 1 < argc) labels_path = argv[++i];
-        else if ((a == "--input" || a == "-i") && i + 1 < argc) input_path = argv[++i];
-        else if ((a == "--output" || a == "-o") && i + 1 < argc) output_path = argv[++i];
+        if ((a == "--config" || a == "-c") && i + 1 < argc)
+            config_path = argv[++i];
+        else if (a == "--labels" && i + 1 < argc)
+            labels_path = argv[++i];
+        else if ((a == "--input" || a == "-i") && i + 1 < argc)
+            input_path = argv[++i];
+        else if ((a == "--output" || a == "-o") && i + 1 < argc)
+            output_path = argv[++i];
         else if (a == "--help" || a == "-h") {
             print_usage(argv[0]);
             return EXIT_SUCCESS;
@@ -100,7 +105,8 @@ int main(int argc, char** argv) {
         std::uint64_t frame_no = 0;
         cv::Mat frame;
         while (cap.read(frame)) {
-            if (g_shutdown.load()) break;
+            if (g_shutdown.load())
+                break;
             const auto detections = detector.detect(frame);
 
             std::vector<std::pair<std::uint64_t, cv::Rect2f>> tracks;

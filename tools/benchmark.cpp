@@ -4,13 +4,12 @@
 #include <spdlog/spdlog.h>
 
 #include <Eigen/Core>
-#include <opencv2/core.hpp>
-
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <opencv2/core.hpp>
 #include <random>
 #include <string>
 #include <vector>
@@ -26,12 +25,14 @@ namespace {
 using Clock = std::chrono::steady_clock;
 
 double percentile(std::vector<double> v, double p) {
-    if (v.empty()) return 0.0;
+    if (v.empty())
+        return 0.0;
     std::sort(v.begin(), v.end());
     const double pos = p * static_cast<double>(v.size() - 1);
     const auto lo = static_cast<std::size_t>(pos);
     const double frac = pos - static_cast<double>(lo);
-    if (lo + 1 >= v.size()) return v[lo];
+    if (lo + 1 >= v.size())
+        return v[lo];
     return v[lo] * (1.0 - frac) + v[lo + 1] * frac;
 }
 
@@ -41,8 +42,7 @@ void print_usage(const char* argv0) {
 
 void report(const char* stage, const std::vector<double>& ms) {
     std::cout << stage << "\n"
-              << "  p50: " << std::fixed << std::setprecision(3) << percentile(ms, 0.5)
-              << " ms\n"
+              << "  p50: " << std::fixed << std::setprecision(3) << percentile(ms, 0.5) << " ms\n"
               << "  p95: " << percentile(ms, 0.95) << " ms\n"
               << "  p99: " << percentile(ms, 0.99) << " ms\n";
 }
@@ -53,7 +53,8 @@ int main(int argc, char** argv) {
     std::string config_path;
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[i];
-        if ((a == "--config" || a == "-c") && i + 1 < argc) config_path = argv[++i];
+        if ((a == "--config" || a == "-c") && i + 1 < argc)
+            config_path = argv[++i];
         else if (a == "--help" || a == "-h") {
             print_usage(argv[0]);
             return EXIT_SUCCESS;
@@ -120,8 +121,10 @@ int main(int argc, char** argv) {
         std::vector<float> skel(static_cast<std::size_t>(3) * cfg.action.window_frames *
                                 cfg.action.num_keypoints);
         std::normal_distribution<float> nd(0.0f, 0.5f);
-        for (auto& v : skel) v = nd(rng);
-        for (std::size_t i = 0; i < 5; ++i) (void)action.classify(skel);
+        for (auto& v : skel)
+            v = nd(rng);
+        for (std::size_t i = 0; i < 5; ++i)
+            (void)action.classify(skel);
 
         std::vector<double> action_ms;
         action_ms.reserve(iters);

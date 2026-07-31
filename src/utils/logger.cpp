@@ -12,14 +12,15 @@ namespace {
 
 spdlog::level::level_enum parse_level(const std::string& level) {
     static const std::unordered_map<std::string, spdlog::level::level_enum> table = {
-        {"trace", spdlog::level::trace},     {"debug", spdlog::level::debug},
-        {"info", spdlog::level::info},       {"warn", spdlog::level::warn},
-        {"warning", spdlog::level::warn},    {"error", spdlog::level::err},
-        {"err", spdlog::level::err},         {"critical", spdlog::level::critical},
+        {"trace", spdlog::level::trace},  {"debug", spdlog::level::debug},
+        {"info", spdlog::level::info},    {"warn", spdlog::level::warn},
+        {"warning", spdlog::level::warn}, {"error", spdlog::level::err},
+        {"err", spdlog::level::err},      {"critical", spdlog::level::critical},
         {"off", spdlog::level::off},
     };
     const auto it = table.find(level);
-    if (it == table.end()) throw std::invalid_argument("unknown log level: " + level);
+    if (it == table.end())
+        throw std::invalid_argument("unknown log level: " + level);
     return it->second;
 }
 

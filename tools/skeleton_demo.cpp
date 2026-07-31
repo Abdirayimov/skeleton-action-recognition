@@ -36,9 +36,9 @@ constexpr int W = 480, H = 540;
 
 // NTU-25 bone list (0-indexed), matching graph.NTU25_EDGES.
 constexpr std::array<std::pair<int, int>, 24> kNtuEdges{{
-    {0, 1}, {1, 20}, {2, 20}, {3, 2}, {4, 20}, {5, 4}, {6, 5}, {7, 6},
-    {8, 20}, {9, 8}, {10, 9}, {11, 10}, {12, 0}, {13, 12}, {14, 13}, {15, 14},
-    {16, 0}, {17, 16}, {18, 17}, {19, 18}, {21, 22}, {22, 7}, {23, 24}, {24, 11},
+    {0, 1},  {1, 20},  {2, 20},  {3, 2},   {4, 20},  {5, 4},   {6, 5},   {7, 6},
+    {8, 20}, {9, 8},   {10, 9},  {11, 10}, {12, 0},  {13, 12}, {14, 13}, {15, 14},
+    {16, 0}, {17, 16}, {18, 17}, {19, 18}, {21, 22}, {22, 7},  {23, 24}, {24, 11},
 }};
 
 struct Rgb {
@@ -56,7 +56,8 @@ public:
         }
     }
     void px(int x, int y, Rgb c) {
-        if (x < 0 || x >= W || y < 0 || y >= H) return;
+        if (x < 0 || x >= W || y < 0 || y >= H)
+            return;
         const std::size_t i = (static_cast<std::size_t>(y) * W + x) * 3;
         buf_[i] = c.r;
         buf_[i + 1] = c.g;
@@ -65,7 +66,8 @@ public:
     void disk(int cx, int cy, int rad, Rgb c) {
         for (int dy = -rad; dy <= rad; ++dy)
             for (int dx = -rad; dx <= rad; ++dx)
-                if (dx * dx + dy * dy <= rad * rad) px(cx + dx, cy + dy, c);
+                if (dx * dx + dy * dy <= rad * rad)
+                    px(cx + dx, cy + dy, c);
     }
     void line(int x0, int y0, int x1, int y1, Rgb c, int thick) {
         int dx = std::abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
@@ -73,15 +75,23 @@ public:
         int err = dx + dy;
         while (true) {
             disk(x0, y0, thick, c);
-            if (x0 == x1 && y0 == y1) break;
+            if (x0 == x1 && y0 == y1)
+                break;
             const int e2 = 2 * err;
-            if (e2 >= dy) { err += dy; x0 += sx; }
-            if (e2 <= dx) { err += dx; y0 += sy; }
+            if (e2 >= dy) {
+                err += dy;
+                x0 += sx;
+            }
+            if (e2 <= dx) {
+                err += dx;
+                y0 += sy;
+            }
         }
     }
     void bar(int y0, int y1, Rgb c) {
         for (int y = y0; y < y1; ++y)
-            for (int x = 0; x < W; ++x) px(x, y, c);
+            for (int x = 0; x < W; ++x)
+                px(x, y, c);
     }
     void write_ppm(const std::string& path) const {
         std::ofstream f(path, std::ios::binary);
@@ -102,19 +112,26 @@ struct ClipBundle {
 
 ClipBundle load_clips(const std::string& path) {
     std::ifstream f(path, std::ios::binary);
-    if (!f.is_open()) throw std::runtime_error("cannot open clips: " + path);
+    if (!f.is_open())
+        throw std::runtime_error("cannot open clips: " + path);
     std::int32_t hdr[6];
     f.read(reinterpret_cast<char*>(hdr), sizeof(hdr));
-    if (static_cast<std::uint32_t>(hdr[0]) != kClipMagic) throw std::runtime_error("bad magic");
+    if (static_cast<std::uint32_t>(hdr[0]) != kClipMagic)
+        throw std::runtime_error("bad magic");
     ClipBundle b;
-    b.count = hdr[1]; b.c = hdr[2]; b.t = hdr[3]; b.v = hdr[4]; b.m = hdr[5];
+    b.count = hdr[1];
+    b.c = hdr[2];
+    b.t = hdr[3];
+    b.v = hdr[4];
+    b.m = hdr[5];
     const std::size_t n = static_cast<std::size_t>(b.count) * b.c * b.t * b.v * b.m;
     b.data.resize(n);
     f.read(reinterpret_cast<char*>(b.data.data()), static_cast<std::streamsize>(n * sizeof(float)));
     b.labels.resize(static_cast<std::size_t>(b.count));
     f.read(reinterpret_cast<char*>(b.labels.data()),
            static_cast<std::streamsize>(b.count * sizeof(std::int32_t)));
-    if (!f) throw std::runtime_error("short read on clips file");
+    if (!f)
+        throw std::runtime_error("short read on clips file");
     return b;
 }
 
@@ -123,7 +140,8 @@ std::vector<std::string> load_labels(const std::string& path) {
     std::ifstream f(path);
     std::string line;
     while (std::getline(f, line))
-        if (!line.empty() && line[0] != '#') out.push_back(line);
+        if (!line.empty() && line[0] != '#')
+            out.push_back(line);
     return out;
 }
 
@@ -139,14 +157,20 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
         const std::string a = argv[i];
         auto take = [&](const std::string& flag) {
-            if (i + 1 >= argc) throw std::invalid_argument(flag + " expects a value");
+            if (i + 1 >= argc)
+                throw std::invalid_argument(flag + " expects a value");
             return std::string(argv[++i]);
         };
-        if (a == "--engine") engine = take(a);
-        else if (a == "--clips") clips_path = take(a);
-        else if (a == "--labels") labels_path = take(a);
-        else if (a == "--out-dir") out_dir = take(a);
-        else if (a == "--hold") hold = std::stoi(take(a));
+        if (a == "--engine")
+            engine = take(a);
+        else if (a == "--clips")
+            clips_path = take(a);
+        else if (a == "--labels")
+            labels_path = take(a);
+        else if (a == "--out-dir")
+            out_dir = take(a);
+        else if (a == "--hold")
+            hold = std::stoi(take(a));
         else if (a == "--help" || a == "-h") {
             std::printf("Usage: %s --engine E --clips C.bin --labels L.txt --out-dir DIR\n",
                         argv[0]);
@@ -188,7 +212,8 @@ int main(int argc, char** argv) {
             correct_total += ok ? 1 : 0;
             const std::string pred_name =
                 (pred.class_id >= 0 && pred.class_id < static_cast<int>(labels.size()))
-                    ? labels[static_cast<std::size_t>(pred.class_id)] : "unknown";
+                    ? labels[static_cast<std::size_t>(pred.class_id)]
+                    : "unknown";
             SPDLOG_INFO("clip {:2d}: pred={:<16} truth={:<16} {}", k, pred_name,
                         labels[static_cast<std::size_t>(gt)], ok ? "OK" : "X");
 
@@ -196,8 +221,10 @@ int main(int argc, char** argv) {
             float minx = 1e9f, maxx = -1e9f, miny = 1e9f, maxy = -1e9f;
             for (int t = 0; t < T; ++t) {
                 float e = 0;
-                for (int v = 0; v < V; ++v) e += std::abs(at(clip, 0, t, v, T, V));
-                if (e < 1e-6f) continue;
+                for (int v = 0; v < V; ++v)
+                    e += std::abs(at(clip, 0, t, v, T, V));
+                if (e < 1e-6f)
+                    continue;
                 for (int v = 0; v < V; ++v) {
                     minx = std::min(minx, at(clip, 0, t, v, T, V));
                     maxx = std::max(maxx, at(clip, 0, t, v, T, V));
@@ -219,13 +246,16 @@ int main(int argc, char** argv) {
             const int clip_start = global;
             for (int t = 0; t < T; ++t) {
                 float e = 0;
-                for (int v = 0; v < V; ++v) e += std::abs(at(clip, 0, t, v, T, V));
-                if (e < 1e-6f) continue;
+                for (int v = 0; v < V; ++v)
+                    e += std::abs(at(clip, 0, t, v, T, V));
+                if (e < 1e-6f)
+                    continue;
                 Canvas cv;
                 cv.fill(bg);
                 cv.bar(0, 10, status);
                 for (const auto& [a, b] : kNtuEdges) {
-                    if (a >= V || b >= V) continue;
+                    if (a >= V || b >= V)
+                        continue;
                     auto pa = proj(at(clip, 0, t, a, T, V), at(clip, 1, t, a, T, V));
                     auto pb = proj(at(clip, 0, t, b, T, V), at(clip, 1, t, b, T, V));
                     cv.line(pa.first, pa.second, pb.first, pb.second, bone, 2);
