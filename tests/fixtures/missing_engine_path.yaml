@@ -1,0 +1,8 @@
+detection:
+  input_width: 640
+
+pose:
+  engine_path: "models/engines/pose.engine"
+
+action:
+  engine_path: "models/engines/action.engine"

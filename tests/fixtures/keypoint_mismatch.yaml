@@ -1,0 +1,11 @@
+# The pose stage produces 17 joints but the classifier expects 25.
+detection:
+  engine_path: "models/engines/detector.engine"
+
+pose:
+  engine_path: "models/engines/pose.engine"
+  num_keypoints: 17
+
+action:
+  engine_path: "models/engines/action.engine"
+  num_keypoints: 25

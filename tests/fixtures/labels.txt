@@ -1,0 +1,4 @@
+# A three-class table for the mismatch tests.
+stand
+sit
+wave

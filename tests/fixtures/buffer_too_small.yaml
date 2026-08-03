@@ -1,0 +1,13 @@
+# The buffer can never hold a whole clip, so as_tensor never becomes ready.
+detection:
+  engine_path: "models/engines/detector.engine"
+
+pose:
+  engine_path: "models/engines/pose.engine"
+
+action:
+  engine_path: "models/engines/action.engine"
+  window_frames: 30
+
+tracking:
+  buffer_size: 10

@@ -1,0 +1,38 @@
+# Every field explicitly set, so the parser has nothing to default.
+pipeline:
+  muxer_width: 1920
+  muxer_height: 1080
+  batch_size: 4
+  batched_push_timeout_us: 33000
+  emit_overlay: false
+
+detection:
+  engine_path: "models/engines/yolov8s_person_fp16.engine"
+  input_width: 960
+  input_height: 960
+  confidence_threshold: 0.35
+  nms_iou_threshold: 0.6
+  person_class_id: 0
+
+pose:
+  engine_path: "models/engines/rtmpose_m_fp16.engine"
+  input_width: 288
+  input_height: 384
+  num_keypoints: 17
+  batch_size: 8
+
+action:
+  engine_path: "models/engines/stgcn_fp16.engine"
+  num_classes: 10
+  window_frames: 45
+  step_frames: 15
+  num_keypoints: 17
+
+tracking:
+  buffer_size: 60
+  max_missed_frames: 20
+  min_keypoint_confidence: 0.4
+
+logging:
+  level: "debug"
+  json: false
