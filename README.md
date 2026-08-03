@@ -232,11 +232,37 @@ runtime. The interesting knobs:
 - [ ] Multi-person interaction handling (M = 2, paired classifier).
 - [ ] INT8 calibration recipe for the action model.
 
+## Tests
+
+The algorithmic stages sit in a `skeleton_ar_core` target that links only
+OpenCV, Eigen, spdlog and yaml-cpp, so the test suite builds on a machine
+with no NVIDIA stack at all:
+
+```bash
+cmake -S . -B build-tests -G Ninja \
+      -DSKAR_CPU_ONLY=ON \
+      -DSKAR_BUILD_TESTS=ON
+cmake --build build-tests -j
+ctest --test-dir build-tests --output-on-failure
+```
+
+57 tests cover the sliding skeleton buffer (window readiness, forward
+fill of low-confidence joints, eviction, and the translation/scale
+normalisation that makes the tensor invariant to where in the frame the
+person stands and how large they appear), the track registry, and config
+validation. GoogleTest is fetched at configure time (pinned to
+`v1.14.0`).
+
+The GPU stages — TensorRT engine wrapper, YOLOv8 detector, RTMPose
+estimator, ST-GCN classifier, DeepStream pipeline — are not unit tested;
+they need a device and serialized engines.
+
 ## CI
 
-CI runs clang-format and cppcheck over the tree. **The CUDA / TensorRT /
-DeepStream build is not exercised on GitHub runners** — they carry none
-of those SDKs. Build it locally or through the provided Docker image.
+CI runs clang-format, cppcheck and the CPU-only unit tests. **The CUDA /
+TensorRT / DeepStream build is not exercised on GitHub runners** — they
+carry none of those SDKs. Build it locally or through the provided
+Docker image.
 
 ## License
 
