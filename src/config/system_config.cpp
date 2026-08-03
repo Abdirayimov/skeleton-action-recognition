@@ -2,6 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <string>
@@ -9,6 +10,20 @@
 namespace skeleton_ar::config {
 
 namespace {
+
+void require_positive(std::uint32_t value, const char* key) {
+    if (value == 0) {
+        throw std::runtime_error(std::string("config: ") + key + " must be greater than zero");
+    }
+}
+
+void require_in_range(float value, float lo, float hi, const char* key) {
+    if (!(value >= lo && value <= hi)) {
+        throw std::runtime_error(std::string("config: ") + key + " must be in [" +
+                                 std::to_string(lo) + ", " + std::to_string(hi) + "], got " +
+                                 std::to_string(value));
+    }
+}
 
 template <typename T>
 T require(const YAML::Node& node, const std::string& key) {
@@ -39,7 +54,74 @@ std::vector<std::string> read_labels(const std::string& path) {
 
 }  // namespace
 
+void SystemConfig::validate() const {
+    require_positive(pipeline.muxer_width, "pipeline.muxer_width");
+    require_positive(pipeline.muxer_height, "pipeline.muxer_height");
+    require_positive(pipeline.batch_size, "pipeline.batch_size");
+
+    if (detection.engine_path.empty()) {
+        throw std::runtime_error("config: detection.engine_path must not be empty");
+    }
+    require_positive(detection.input_width, "detection.input_width");
+    require_positive(detection.input_height, "detection.input_height");
+    require_in_range(detection.confidence_threshold, 0.0f, 1.0f, "detection.confidence_threshold");
+    require_in_range(detection.nms_iou_threshold, 0.0f, 1.0f, "detection.nms_iou_threshold");
+    if (detection.person_class_id < 0) {
+        throw std::runtime_error("config: detection.person_class_id must not be negative");
+    }
+
+    if (pose.engine_path.empty()) {
+        throw std::runtime_error("config: pose.engine_path must not be empty");
+    }
+    require_positive(pose.input_width, "pose.input_width");
+    require_positive(pose.input_height, "pose.input_height");
+    require_positive(pose.num_keypoints, "pose.num_keypoints");
+    require_positive(pose.batch_size, "pose.batch_size");
+
+    if (action.engine_path.empty()) {
+        throw std::runtime_error("config: action.engine_path must not be empty");
+    }
+    require_positive(action.num_classes, "action.num_classes");
+    require_positive(action.window_frames, "action.window_frames");
+    require_positive(action.step_frames, "action.step_frames");
+    require_positive(action.num_keypoints, "action.num_keypoints");
+
+    // The pose stage produces the joints the action stage consumes; a
+    // mismatch silently feeds the classifier a differently-shaped tensor.
+    if (pose.num_keypoints != action.num_keypoints) {
+        throw std::runtime_error(
+            "config: pose.num_keypoints (" + std::to_string(pose.num_keypoints) +
+            ") must match action.num_keypoints (" + std::to_string(action.num_keypoints) + ")");
+    }
+    // A step larger than the window skips frames between clips, so a
+    // short action can fall entirely into the gap.
+    if (action.step_frames > action.window_frames) {
+        throw std::runtime_error("config: action.step_frames must not exceed window_frames");
+    }
+    // The buffer has to hold a whole clip or as_tensor() never becomes ready.
+    if (tracking.buffer_size < action.window_frames) {
+        throw std::runtime_error("config: tracking.buffer_size (" +
+                                 std::to_string(tracking.buffer_size) +
+                                 ") must be at least action.window_frames (" +
+                                 std::to_string(action.window_frames) + ")");
+    }
+
+    require_positive(tracking.max_missed_frames, "tracking.max_missed_frames");
+    require_in_range(tracking.min_keypoint_confidence, 0.0f, 1.0f,
+                     "tracking.min_keypoint_confidence");
+
+    if (!labels.empty() && labels.size() != action.num_classes) {
+        throw std::runtime_error("config: label table has " + std::to_string(labels.size()) +
+                                 " entries but action.num_classes is " +
+                                 std::to_string(action.num_classes));
+    }
+}
+
 SystemConfig SystemConfig::load(const std::string& yaml_path, const std::string& labels_path) {
+    std::error_code ec;
+    if (!std::filesystem::is_regular_file(yaml_path, ec)) {
+        throw std::runtime_error("config file not found: " + yaml_path);
+    }
     const YAML::Node root = YAML::LoadFile(yaml_path);
     SystemConfig out;
 
@@ -102,6 +184,7 @@ SystemConfig SystemConfig::load(const std::string& yaml_path, const std::string&
         out.labels = read_labels("configs/labels_ntu60_subset.txt");
     }
 
+    out.validate();
     return out;
 }
 

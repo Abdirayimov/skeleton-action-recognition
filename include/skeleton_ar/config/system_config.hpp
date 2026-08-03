@@ -63,9 +63,17 @@ struct SystemConfig {
     /// YAML config (or via the optional `labels_path` field).
     std::vector<std::string> labels;
 
-    /// Load configuration from a YAML file. Throws std::runtime_error on
-    /// parse failure or missing required fields.
+    /// Load configuration from a YAML file.
+    ///
+    /// @throws std::runtime_error if the file is missing, fails to parse,
+    ///         omits a required field, or carries an out-of-range value.
     static SystemConfig load(const std::string& yaml_path, const std::string& labels_path = "");
+
+    /// Check every field for internal consistency. Called by `load`;
+    /// exposed for callers that assemble a config programmatically.
+    ///
+    /// @throws std::runtime_error naming the offending key and its bounds.
+    void validate() const;
 };
 
 }  // namespace skeleton_ar::config
