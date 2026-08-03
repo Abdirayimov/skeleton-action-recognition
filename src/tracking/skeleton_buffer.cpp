@@ -1,6 +1,7 @@
 #include "skeleton_ar/tracking/skeleton_buffer.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 
 namespace skeleton_ar::tracking {
