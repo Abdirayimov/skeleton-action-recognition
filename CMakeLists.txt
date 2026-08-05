@@ -13,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
 
-option(BUILD_TOOLS "Build CLI tools (benchmark)" ON)
+option(BUILD_TOOLS "Build the CLI tools (skeleton_ar_benchmark, skeleton_demo)" ON)
 option(BUILD_DEEPSTREAM "Build the DeepStream pipeline (requires DeepStream SDK + GStreamer)" ON)
 option(SKAR_BUILD_TESTS "Build the GoogleTest unit test suite" OFF)
 option(SKAR_CPU_ONLY

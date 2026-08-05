@@ -29,6 +29,34 @@ You will get:
 
 - `build/skeleton_ar_video` - offline video processor
 - `build/skeleton_ar_benchmark` - per-stage latency probe
+- `build/skeleton_demo` - ST-GCN over stored clips, renders the README demo
+
+### Options
+
+| Option | Default | What it does |
+|---|---|---|
+| `SKAR_CPU_ONLY` | `OFF` | Build only `skeleton_ar_core` - config, the skeleton buffer, the track registry and the logger. Skips every CUDA / TensorRT / DeepStream `find_package`, so it configures on a machine with no NVIDIA stack. Forces `BUILD_TOOLS` and `BUILD_DEEPSTREAM` off. |
+| `SKAR_BUILD_TESTS` | `OFF` | Build the GoogleTest suite. GoogleTest is fetched at configure time, pinned to `v1.14.0`. |
+| `BUILD_TOOLS` | `ON` | Build `skeleton_ar_benchmark` and `skeleton_demo`. |
+| `BUILD_DEEPSTREAM` | `ON` | Compile `deepstream_pipeline.cpp` and link GStreamer + the DeepStream SDK. Turns itself off with a warning when the SDK is not found. Note that the pipeline does not run the recognition chain yet - see the README's Limitations. |
+
+`BUILD_TESTS` is accepted as a deprecated alias for `SKAR_BUILD_TESTS`
+and warns.
+
+The CPU-only configuration, which is what CI builds:
+
+```bash
+cmake -S . -B build-tests -G Ninja \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DSKAR_CPU_ONLY=ON \
+      -DSKAR_BUILD_TESTS=ON
+cmake --build build-tests -j
+ctest --test-dir build-tests --output-on-failure
+```
+
+> Verified on: Ubuntu 24.04, GCC 13, CMake 3.28, CPU-only configuration.
+> The CUDA / TensorRT / DeepStream configuration is not built by CI and
+> needs the SDKs present.
 
 ## Docker
 

@@ -16,7 +16,7 @@ python -m skeleton_ar_train.prepare_ntu60 \
     --raw-dir /path/to/ntu_rgbd_raw \
     --out-dir data/processed
 
-# 2. Train (single GPU, ~4 hours on RTX 3090).
+# 2. Train (single consumer GPU, roughly 4 hours).
 python -m skeleton_ar_train.train --config configs/train.yaml
 
 # 3. Export the best checkpoint to ONNX for the C++ runtime.

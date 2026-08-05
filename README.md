@@ -48,7 +48,7 @@ trtexec --onnx=outputs/stgcn_ntu10.onnx --saveEngine=stgcn_ntu10.engine
     --labels configs/labels_ntu60_subset.txt --out-dir frames
 ```
 
-> Trained on an RTX 4080 (PyTorch). The ST-GCN supports both the
+> Trained on an RTX 4080 Laptop (12 GB), PyTorch. The ST-GCN supports both the
 > NTU-25 topology (used here) and the COCO-17 topology that RTMPose
 > produces for the live video path — selectable via the graph layout.
 
@@ -139,9 +139,12 @@ and the track registry - is the same code on both paths, and it is what
 
 ## Performance
 
-Indicative numbers on synthetic 720p inputs, RTX 3090. Real numbers
-depend on input resolution, person count, and track behaviour; treat
-this as a sanity floor.
+Indicative numbers on synthetic 720p inputs. **The card these were taken
+on is not recorded**, so read them as relative costs rather than a target
+for your hardware - the two-stage shape is the point, and pose estimation
+dominating it survives a change of GPU. Real numbers also depend on input
+resolution, person count and track behaviour; re-run
+`skeleton_ar_benchmark` on your own card for figures you can plan against.
 
 | Stage                                  | p50 latency |
 |----------------------------------------|------------:|
@@ -195,7 +198,10 @@ docker compose up --build
 │   ├── trt/                       # TrtEngine, YOLOv8, RTMPose, ST-GCN
 │   └── utils/                     # Logger, CUDA helpers
 ├── src/                           # mirrors include/
-├── tools/                         # benchmark.cpp
+├── tests/                         # 57 GoogleTest cases over the CPU core
+├── tools/
+│   ├── benchmark.cpp              # per-stage latency probe
+│   └── skeleton_demo.cpp          # renders the demo above
 ├── training/                      # PyTorch Lightning training (Python)
 ├── scripts/
 └── docs/
