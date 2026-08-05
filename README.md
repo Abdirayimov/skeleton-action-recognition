@@ -128,8 +128,8 @@ The actual entry point in `src/main.cpp` is an OpenCV-based fallback
 driver that does not require DeepStream to be installed (it runs the
 TRT engines directly). The DeepStream pipeline class is built and
 fully wired but not the default path; readers wanting full production
-behaviour can swap `face_server` (or rather, `skeleton_ar_video`) for
-a binary that calls `DeepStreamPipeline::run` instead.
+behaviour can swap `skeleton_ar_video` for a binary that calls
+`DeepStreamPipeline::run` instead.
 
 ## Performance
 
