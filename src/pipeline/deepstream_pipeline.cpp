@@ -81,9 +81,12 @@ DeepStreamPipeline::DeepStreamPipeline(const config::PipelineConfig& cfg,
         throw std::runtime_error("failed to link mux -> pgie -> tracker -> osd -> sink");
     }
 
-    // The tracker's src-pad probe would forward (track_id, bbox) tuples
-    // to probe_chain_; the wire-up is left to the integration layer to
-    // keep this constructor small and testable.
+    // NOTE: no src-pad probe is attached, here or in run(). The pipeline
+    // therefore runs the detector and the tracker and discards both; the
+    // ProbeChain handed to this constructor is stored and never called.
+    // skeleton_ar_video drives the same chain over OpenCV, which is what
+    // the demo and the benchmark exercise. Attaching the probe is a
+    // roadmap item; see the README's Limitations section.
     (void)probe_chain_;
 }
 
@@ -95,17 +98,15 @@ DeepStreamPipeline::~DeepStreamPipeline() {
     }
 }
 
-void DeepStreamPipeline::run(const std::string& input_uri, const std::string& output_path) {
+void DeepStreamPipeline::run(const std::string& input_uri) {
     if (running_.exchange(true))
         return;
     g_object_set(G_OBJECT(impl_->source), "uri", input_uri.c_str(), nullptr);
 
-    // Re-targeting the sink to a file is supported by replacing fakesink
-    // with an encoder + filesink chain when emit_overlay is true. For the
-    // reference implementation we keep fakesink and document this in
-    // README.md; readers extending this should swap to nvv4l2h264enc +
-    // h264parse + qtmux + filesink.
-    (void)output_path;
+    // The sink is a fakesink and this method writes no file. Producing an
+    // annotated MP4 here means replacing it with nvv4l2h264enc + h264parse
+    // + qtmux + filesink, which is the roadmap entry; until then there is
+    // no output path to accept.
 
     impl_->loop = g_main_loop_new(nullptr, FALSE);
     gst_element_set_state(impl_->pipeline, GST_STATE_PLAYING);

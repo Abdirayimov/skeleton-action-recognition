@@ -10,15 +10,21 @@ namespace skeleton_ar::pipeline {
 
 class ProbeChain;
 
-/// Single-source DeepStream pipeline targeting offline video processing:
+/// Single-source DeepStream pipeline, built but not yet driving anything:
 ///
-///     filesrc -> decoder -> nvstreammux -> nvinfer (YOLOv8 person)
-///              -> nvtracker (NvDCF) -> nvdsosd -> filesink (mp4)
+///     nvurisrcbin -> nvstreammux -> nvinfer (YOLOv8 person)
+///                 -> nvtracker (NvDCF) -> nvdsosd -> fakesink
 ///
-/// A src-pad probe attached after nvtracker collects (track_id, bbox)
-/// pairs and forwards them to the supplied `ProbeChain`, which runs
-/// pose + action classification and writes an overlay before the
-/// frame is encoded.
+/// The design is for a src-pad probe after `nvtracker` to collect
+/// (track_id, bbox) pairs, hand them to the supplied `ProbeChain` for
+/// pose + action classification, and encode an annotated stream out.
+/// Neither half of that exists yet: no probe is attached, so
+/// `probe_chain` is held and never called, and the sink is a `fakesink`,
+/// so nothing is encoded. Both are roadmap items.
+///
+/// Nothing in this repo constructs this class - `skeleton_ar_video`
+/// drives the same `ProbeChain` over OpenCV instead, and that is the
+/// path the demos and the benchmark use.
 class DeepStreamPipeline {
 public:
     DeepStreamPipeline(const config::PipelineConfig& cfg, const std::string& pgie_config_path,
@@ -28,9 +34,12 @@ public:
     DeepStreamPipeline(const DeepStreamPipeline&) = delete;
     DeepStreamPipeline& operator=(const DeepStreamPipeline&) = delete;
 
-    /// Run the pipeline on `input_uri` and (if `emit_overlay`) encode an
-    /// annotated MP4 to `output_path`. Blocks until EOS or `stop()`.
-    void run(const std::string& input_uri, const std::string& output_path);
+    /// Run the pipeline on `input_uri`. Blocks until EOS or `stop()`.
+    ///
+    /// Takes no output path: the sink is a `fakesink` and there is nothing
+    /// to write. The parameter used to be here and was discarded with a
+    /// cast, which promised a file the caller never got.
+    void run(const std::string& input_uri);
 
     void stop();
 

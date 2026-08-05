@@ -124,12 +124,18 @@ RTSP / mp4 ─►│ filesrc -> decoder -> nvstreammux -> nvinfer (YOLOv8)│
         └───────────────────────────────────────────────────────────┘
 ```
 
-The actual entry point in `src/main.cpp` is an OpenCV-based fallback
-driver that does not require DeepStream to be installed (it runs the
-TRT engines directly). The DeepStream pipeline class is built and
-fully wired but not the default path; readers wanting full production
-behaviour can swap `skeleton_ar_video` for a binary that calls
-`DeepStreamPipeline::run` instead.
+That diagram is the design. The entry point in `src/main.cpp` is an
+OpenCV driver that runs the TRT engines directly and needs no
+DeepStream install - and it is the only path that runs the recognition
+chain today. `DeepStreamPipeline` builds and links the elements above,
+but no src-pad probe is attached, so the `ProbeChain` it is given is
+never called, and its sink is a `fakesink`, so nothing is encoded.
+Nothing in the repo constructs it. Attaching the probe and swapping the
+sink are the first two roadmap entries.
+
+`ProbeChain` itself - pose estimation, buffering, ST-GCN classification
+and the track registry - is the same code on both paths, and it is what
+`skeleton_ar_video`, `skeleton_demo` and the benchmark all exercise.
 
 ## Performance
 
@@ -213,9 +219,15 @@ runtime. The interesting knobs:
 
 ## Limitations
 
-- The default driver (`skeleton_ar_video`) uses naive per-frame
-  detection IDs as track IDs. Real deployments should use the
-  DeepStream / NvDCF path for stable IDs across occlusions.
+- **The DeepStream path does not run.** `DeepStreamPipeline` constructs
+  the element graph and stops there: no probe is attached to `nvtracker`,
+  so `ProbeChain` is never invoked, and the sink is a `fakesink`. Nothing
+  constructs the class. Use `skeleton_ar_video`.
+- The driver that does run (`skeleton_ar_video`) uses naive per-frame
+  detection IDs as track IDs, so identities are not stable across
+  occlusions. Stable IDs need NvDCF, which needs the DeepStream path
+  above - that is the honest state of the trade-off, not a configuration
+  you can select today.
 - Only single-person clips are supported per ST-GCN call (M = 1).
   Two-person interactions need either a different graph topology or
   pairing logic in the probe chain.
@@ -226,8 +238,11 @@ runtime. The interesting knobs:
 
 ## Roadmap
 
-- [ ] Wire the DeepStream pipeline to the OSD output and produce
-      annotated MP4s natively (currently OpenCV does the writing).
+- [ ] Attach the src-pad probe so `DeepStreamPipeline` actually drives
+      `ProbeChain`, and give it a caller.
+- [ ] Swap the `fakesink` for nvv4l2h264enc + h264parse + qtmux +
+      filesink and produce annotated MP4s natively (currently OpenCV
+      does the writing).
 - [ ] CTR-GCN and AAGCN classifier variants.
 - [ ] Multi-person interaction handling (M = 2, paired classifier).
 - [ ] INT8 calibration recipe for the action model.
@@ -254,8 +269,9 @@ validation. GoogleTest is fetched at configure time (pinned to
 `v1.14.0`).
 
 The GPU stages — TensorRT engine wrapper, YOLOv8 detector, RTMPose
-estimator, ST-GCN classifier, DeepStream pipeline — are not unit tested;
-they need a device and serialized engines.
+estimator, ST-GCN classifier — are not unit tested; they need a device
+and serialized engines. `DeepStreamPipeline` is not tested either, and
+additionally does nothing yet (see Limitations).
 
 ## CI
 

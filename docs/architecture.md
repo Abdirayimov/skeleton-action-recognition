@@ -16,6 +16,13 @@ flowchart LR
     OSD --> Out[mp4]
 ```
 
+> **Current state.** Everything from the src-pad probe rightwards is
+> implemented and exercised - but by `skeleton_ar_video`, which feeds
+> `ProbeChain` from OpenCV `VideoCapture` and writes the mp4 with
+> `cv::VideoWriter`. The DeepStream half on the left builds and links,
+> and then stops: no probe is attached to `nvtracker`, so the two halves
+> are not connected. See the README's Limitations.
+
 ## Two stages, one pipeline
 
 The "two-stage" naming refers to the model architecture, not the
@@ -50,9 +57,12 @@ The buffer policy is small but matters:
 - The OpenCV-only driver (`skeleton_ar_video`) is single-threaded;
   detector / pose / classifier all run on the same CUDA stream per
   call.
-- The DeepStream pipeline runs the GLib main loop on its own thread.
-  The probe chain runs on a streaming thread owned by `nvtracker`,
-  so heavy work in the probe will throttle upstream.
+- `DeepStreamPipeline` runs the GLib main loop on its own thread. The
+  probe chain is *designed* to run on a streaming thread owned by
+  `nvtracker`, which is why the probe is written to be cheap - but the
+  probe is not attached yet, so today nothing calls it from there. In
+  `skeleton_ar_video` the chain runs on the main thread, one frame at a
+  time.
 
 ## Failure modes
 
